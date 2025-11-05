@@ -15,6 +15,13 @@ import {
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { createClient } from "@supabase/supabase-js"
+
+// Crie o cliente Supabase.
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 export default function MainLayout({
   children,
@@ -25,31 +32,6 @@ export default function MainLayout({
   const pathname = usePathname()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [currentUser, setCurrentUser] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const checkAuth = () => {
-      try {
-        const user = localStorage.getItem("minha-aula-current-user")
-        if (!user) {
-          router.push("/login")
-          return
-        }
-        setCurrentUser(JSON.parse(user))
-      } catch (error) {
-        console.error("Error checking auth:", error)
-        router.push("/login")
-      } finally {
-        setLoading(false)
-      }
-    }
-    checkAuth()
-  }, [router])
-
-  const handleLogout = () => {
-    localStorage.removeItem("minha-aula-current-user")
-    router.push("/login")
-  }
 
   const menuItems = [
     { href: "/page/dashboard", label: "Dashboard", icon: TrendingUp },
@@ -59,21 +41,33 @@ export default function MainLayout({
     { href: "/page/settings", label: "Configurações", icon: Settings },
   ]
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Carregando...</p>
-        </div>
-      </div>
-    )
-  }
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.push('/login');
+      } else {
+        // Opcional: você pode querer buscar dados adicionais do usuário aqui
+        setCurrentUser(session.user.user_metadata);
+      }
+    };
 
-  if (!currentUser) {
-    return null;
-  }
+    checkSession();
 
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) {
+        router.push('/login');
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [router]);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    router.push("/login")
+  }
+      
   const SidebarContent = () => (
     <div className="flex flex-col h-full bg-background">
       <div className="p-6 border-b">
