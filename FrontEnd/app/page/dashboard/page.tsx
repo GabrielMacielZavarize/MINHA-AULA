@@ -22,19 +22,30 @@ import { usePayments } from "@/hooks/use-payments"
 import { formatCurrency } from "@/lib/utils"
 import { format, parseISO } from "date-fns"
 import { ptBR } from "date-fns/locale"
+import { createClient } from "@supabase/supabase-js"
+import { User } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 export default function DashboardPage() {
   const { classes } = useClasses()
   const { students } = useStudents()
   const { payments } = usePayments()
   const [hideFinancialData, setHideFinancialData] = useState(false)
-  const [currentUser, setCurrentUser] = useState<any>(null);
 
-  useEffect(() => {
-    const user = localStorage.getItem("minha-aula-current-user");
-    if (user) {
-      setCurrentUser(JSON.parse(user));
+const [currentUser, setCurrentUser] = useState<User | null>(null);
+const [loading, setLoading] = useState(true);
+useEffect(() => {
+    // Pegar o usuário da sessão do Supabase
+    const fetchUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUser(user);
+      setLoading(false);
     }
+    fetchUser();
   }, []);
 
   const stats = {
@@ -63,7 +74,7 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground">Bem-vindo de volta, {currentUser?.name || "Professor"}!</p>
+          <p className="text-muted-foreground">Bem-vindo de volta, {currentUser?.user_metadata?.name || "Professor"}!</p>
         </div>
         <Button
           variant="outline"
