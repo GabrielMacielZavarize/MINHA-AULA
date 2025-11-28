@@ -11,17 +11,14 @@ import {
   Settings,
   LogOut,
   Menu,
+  BookOpen,
+  Search,
+  Bell,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { createClient } from "@supabase/supabase-js"
-
-// Crie o cliente Supabase.
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { getProfile, type Profile, supabase } from "@/lib/supabase-db"
 
 export default function MainLayout({
   children,
@@ -32,36 +29,88 @@ export default function MainLayout({
   const pathname = usePathname()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [currentUser, setCurrentUser] = useState<any>(null)
+  const [userProfile, setUserProfile] = useState<Profile | null>(null)
+  const [profileLoading, setProfileLoading] = useState(true)
 
-  const menuItems = [
+  // Menu items for teachers
+  const teacherMenuItems = [
     { href: "/page/dashboard", label: "Dashboard", icon: TrendingUp },
+    { href: "/page/dashboard/classes", label: "Gerenciar Aulas", icon: BookOpen },
     { href: "/page/calendar", label: "Agenda", icon: Calendar },
-    { href: "/page/students", label: "Alunos", icon: Users },
+    { href: "/page/students", label: "Meus Alunos", icon: Users },
     { href: "/page/financial", label: "Financeiro", icon: DollarSign },
+    { href: "/page/dashboard/notifications", label: "Notificações", icon: Bell },
     { href: "/page/settings", label: "Configurações", icon: Settings },
   ]
 
+  // Menu items for students
+  const studentMenuItems = [
+    { href: "/page/dashboard/find-classes", label: "Encontrar Aulas", icon: Search },
+    { href: "/page/dashboard/schedule", label: "Minhas Aulas", icon: Calendar },
+    { href: "/page/dashboard/teachers", label: "Meus Professores", icon: Users },
+    { href: "/page/dashboard/notifications", label: "Notificações", icon: Bell },
+    { href: "/page/settings", label: "Configurações", icon: Settings },
+  ]
+
+  // Determine menu items based on role
+  const menuItems = userProfile?.role === 'student' 
+    ? studentMenuItems 
+    : userProfile?.role === 'teacher' 
+      ? teacherMenuItems 
+      : []
+
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        router.push('/login');
-      } else {
-        // Opcional: você pode querer buscar dados adicionais do usuário aqui
+      // Only set loading if we don't have a profile yet
+      if (!userProfile) setProfileLoading(true)
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          router.push('/login');
+          return;
+        }
+        
         setCurrentUser(session.user.user_metadata);
+        
+        // Fetch full profile to get role
+        const profile = await getProfile(session.user.id);
+        if (profile) {
+          setUserProfile(profile);
+        }
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+      } finally {
+        setProfileLoading(false)
       }
     };
 
     checkSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_OUT' || !session) {
         router.push('/login');
+        setUserProfile(null)
+        setProfileLoading(false)
+      } else if (session.user && event !== 'INITIAL_SESSION') {
+        // Only reload if we don't have a profile or if it's a different user
+        if (!userProfile || userProfile.id !== session.user.id) {
+            setProfileLoading(true)
+            try {
+            const profile = await getProfile(session.user.id)
+            if (profile) {
+                setUserProfile(profile);
+            }
+            } catch (error) {
+            console.error("Error fetching profile:", error);
+            } finally {
+            setProfileLoading(false)
+            }
+        }
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [router]);
+  }, []);
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -73,14 +122,19 @@ export default function MainLayout({
       <div className="p-6 border-b">
         <div className="flex items-center gap-3">
           <Avatar className="h-10 w-10">
-            <AvatarImage src="/placeholder-user.jpg" />
-            <AvatarFallback className="bg-green-500 text-white">
-              {currentUser?.name?.charAt(0) || "P"}
+            <AvatarImage src={userProfile?.avatar || "/placeholder-user.jpg"} />
+            <AvatarFallback className="bg-primary text-primary-foreground">
+              {(userProfile?.name || currentUser?.name || "U").charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <p className="font-semibold truncate">{currentUser?.name || "Professor"}</p>
-            <p className="text-sm text-muted-foreground truncate">{currentUser?.email}</p>
+            <p className="font-semibold truncate">{userProfile?.name || currentUser?.name || "Usuário"}</p>
+            <p className="text-sm text-muted-foreground truncate">{userProfile?.email || currentUser?.email || ""}</p>
+            {userProfile && (
+              <p className="text-xs text-muted-foreground mt-1">
+                {userProfile.role === 'teacher' ? 'Professor' : 'Aluno'}
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -89,13 +143,13 @@ export default function MainLayout({
         <div className="space-y-2">
           {menuItems.map((item) => {
             const Icon = item.icon
-            const isActive = pathname === item.href;
+            const isActive = pathname === item.href || (pathname?.startsWith(item.href + '/') && item.href !== '/page/dashboard');
             return (
               <Link href={item.href} key={item.href}>
                 <Button
                   variant={isActive ? "default" : "ghost"}
                   className={`w-full justify-start h-12 ${
-                    isActive ? "bg-green-500 hover:bg-green-600 text-white" : "hover:bg-muted"
+                    isActive ? "bg-primary hover:bg-primary/90 text-primary-foreground" : "hover:bg-muted"
                   }`}
                   onClick={() => setSidebarOpen(false)}
                 >

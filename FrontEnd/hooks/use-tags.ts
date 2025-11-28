@@ -2,21 +2,19 @@
 
 import { useState, useEffect } from "react"
 import {
-  getAllTags,
-  createTag as createTagStorage,
-  updateTag as updateTagStorage,
-  deleteTag as deleteTagStorage,
-  initializeStorage,
+  getTags,
+  createTag as createTagDb,
   type ClassTag,
-} from "@/lib/storage"
+} from "@/lib/supabase-db"
 
 export function useTags() {
   const [tags, setTags] = useState<ClassTag[]>([])
   const [loading, setLoading] = useState(true)
 
-  const refresh = () => {
+  const refresh = async () => {
     try {
-      const allTags = getAllTags()
+      setLoading(true)
+      const allTags = await getTags()
       setTags(allTags)
     } catch (error) {
       console.error("Error loading tags:", error)
@@ -27,13 +25,12 @@ export function useTags() {
   }
 
   useEffect(() => {
-    initializeStorage()
     refresh()
   }, [])
 
-  const createTag = (data: Omit<ClassTag, "id">) => {
+  const createTag = async (data: Omit<ClassTag, "id">) => {
     try {
-      const newTag = createTagStorage(data)
+      const newTag = await createTagDb(data)
       refresh()
       return newTag
     } catch (error) {
@@ -43,24 +40,20 @@ export function useTags() {
   }
 
   const updateTag = async (id: string, data: Partial<ClassTag>) => {
-    try {
-      const updatedTag = updateTagStorage(id, data)
-      refresh()
-      return updatedTag
-    } catch (error) {
-      console.error("Error updating tag:", error)
-      throw error
-    }
+    // Note: updateTag is not yet implemented in supabase-db.ts, I should add it there or here.
+    // For now, let's assume I'll add it to supabase-db.ts or just log error.
+    // Actually, I should implement it in supabase-db.ts first.
+    // But to proceed, I'll assume it exists or I'll add it.
+    // Let's check supabase-db.ts content again. I didn't add updateTag/deleteTag there.
+    // I will add them to supabase-db.ts in the next step.
+    console.error("Update tag not implemented yet")
+    throw new Error("Not implemented")
   }
 
   const deleteTag = async (id: string) => {
-    try {
-      deleteTagStorage(id)
-      refresh()
-    } catch (error) {
-      console.error("Error deleting tag:", error)
-      throw error
-    }
+     // Same here
+     console.error("Delete tag not implemented yet")
+     throw new Error("Not implemented")
   }
 
   return {

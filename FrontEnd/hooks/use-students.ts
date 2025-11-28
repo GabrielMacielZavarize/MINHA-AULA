@@ -2,24 +2,15 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { 
-  getAllStudents, 
-  createStudent as createStudentStorage, 
-  updateStudent as updateStudentStorage, 
-  deleteStudent as deleteStudentStorage 
-} from '@/lib/storage'
+  getStudents, 
+  createStudent as createStudentDb, 
+  updateStudent as updateStudentDb, 
+  deleteStudent as deleteStudentDb,
+  type Student 
+} from '@/lib/supabase-db'
+import { useToast } from "@/hooks/use-toast"
 
-export interface Student {
-  id: string
-  name: string
-  email: string
-  phone: string
-  subject: string
-  hourlyRate: number
-  notes?: string
-  avatar?: string
-  createdAt: string
-  updatedAt: string
-}
+export type { Student }
 
 export interface CreateStudentData {
   name: string
@@ -28,63 +19,66 @@ export interface CreateStudentData {
   subject: string
   hourlyRate: number
   notes?: string
-  avatar?: string
 }
 
 export function useStudents() {
   const [students, setStudents] = useState<Student[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const { toast } = useToast()
 
-  const loadStudents = useCallback(() => {
+  const refresh = async () => {
     try {
       setLoading(true)
-      setError(null)
-      const allStudents = getAllStudents()
+      const allStudents = await getStudents()
       setStudents(allStudents)
-    } catch (err) {
-      console.error('Error loading students:', err)
-      setError('Erro ao carregar alunos')
+    } catch (error) {
+      console.error("Error loading students:", error)
+      toast({
+        title: "Erro",
+        description: "Erro ao carregar alunos",
+        variant: "destructive",
+      })
     } finally {
       setLoading(false)
     }
-  }, [])
+  }
 
   useEffect(() => {
-    loadStudents()
-  }, [loadStudents])
+    refresh()
+  }, [])
 
-  const createStudent = useCallback((data: CreateStudentData): Student => {
+  const createStudent = async (data: Omit<Student, "id" | "createdAt" | "updatedAt">) => {
     try {
-      const newStudent = createStudentStorage(data)
-      loadStudents() // Reload to get fresh data
+      const newStudent = await createStudentDb(data)
+      refresh()
       return newStudent
-    } catch (err) {
-      console.error('Error creating student:', err)
-      throw new Error('Erro ao criar aluno')
+    } catch (error) {
+      console.error("Error creating student:", error)
+      throw error
     }
-  }, [loadStudents])
+  }
 
-  const updateStudent = useCallback((id: string, data: Partial<Student>): Student => {
+  const updateStudent = async (id: string, data: Partial<Student>) => {
     try {
-      const updatedStudent = updateStudentStorage(id, data)
-      loadStudents() // Reload to get fresh data
+      const updatedStudent = await updateStudentDb(id, data)
+      refresh()
       return updatedStudent
-    } catch (err) {
-      console.error('Error updating student:', err)
-      throw new Error('Erro ao atualizar aluno')
+    } catch (error) {
+      console.error("Error updating student:", error)
+      throw error
     }
-  }, [loadStudents])
+  }
 
-  const deleteStudent = useCallback((id: string): void => {
+  const deleteStudent = async (id: string) => {
     try {
-      deleteStudentStorage(id)
-      loadStudents() // Reload to get fresh data
-    } catch (err) {
-      console.error('Error deleting student:', err)
-      throw new Error('Erro ao excluir aluno')
+      await deleteStudentDb(id)
+      refresh()
+    } catch (error) {
+      console.error("Error deleting student:", error)
+      throw error
     }
-  }, [loadStudents])
+  }
 
   const getStudentById = useCallback((id: string): Student | undefined => {
     return students.find(student => student.id === id)
@@ -95,7 +89,7 @@ export function useStudents() {
     return students.filter(student =>
       student.name.toLowerCase().includes(lowercaseQuery) ||
       student.email.toLowerCase().includes(lowercaseQuery) ||
-      student.subject.toLowerCase().includes(lowercaseQuery)
+      (student.subject?.toLowerCase().includes(lowercaseQuery) ?? false)
     )
   }, [students])
 
@@ -108,6 +102,6 @@ export function useStudents() {
     deleteStudent,
     getStudentById,
     searchStudents,
-    refresh: loadStudents
+    refresh
   }
 }

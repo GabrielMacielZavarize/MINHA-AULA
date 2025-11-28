@@ -2,23 +2,21 @@
 
 import { useState, useEffect } from "react"
 import {
-  getAllPayments,
-  createPayment as createPaymentStorage,
-  updatePayment as updatePaymentStorage,
-  deletePayment as deletePaymentStorage,
-  markPaymentAsPaid,
-  getPaymentsByStudent,
-  initializeStorage,
+  getPayments,
+  createPayment as createPaymentDb,
+  updatePayment as updatePaymentDb,
+  deletePayment as deletePaymentDb,
   type Payment,
-} from "@/lib/storage"
+} from "@/lib/supabase-db"
 
 export function usePayments() {
   const [payments, setPayments] = useState<Payment[]>([])
   const [loading, setLoading] = useState(true)
 
-  const refresh = () => {
+  const refresh = async () => {
     try {
-      const allPayments = getAllPayments()
+      setLoading(true)
+      const allPayments = await getPayments()
       setPayments(allPayments)
     } catch (error) {
       console.error("Error loading payments:", error)
@@ -29,13 +27,12 @@ export function usePayments() {
   }
 
   useEffect(() => {
-    initializeStorage()
     refresh()
   }, [])
 
-  const createPayment = (data: Omit<Payment, "id" | "createdAt" | "updatedAt">) => {
+  const createPayment = async (data: Omit<Payment, "id" | "createdAt" | "updatedAt">) => {
     try {
-      const newPayment = createPaymentStorage(data)
+      const newPayment = await createPaymentDb(data)
       refresh()
       return newPayment
     } catch (error) {
@@ -46,7 +43,7 @@ export function usePayments() {
 
   const updatePayment = async (id: string, data: Partial<Payment>) => {
     try {
-      const updatedPayment = updatePaymentStorage(id, data)
+      const updatedPayment = await updatePaymentDb(id, data)
       refresh()
       return updatedPayment
     } catch (error) {
@@ -57,7 +54,7 @@ export function usePayments() {
 
   const deletePayment = async (id: string) => {
     try {
-      deletePaymentStorage(id)
+      await deletePaymentDb(id)
       refresh()
     } catch (error) {
       console.error("Error deleting payment:", error)
@@ -67,11 +64,9 @@ export function usePayments() {
 
   const markAsPaid = async (id: string) => {
     try {
-      const success = markPaymentAsPaid(id)
-      if (success) {
-        refresh()
-      }
-      return success
+      const updatedPayment = await updatePaymentDb(id, { status: "paid" })
+      refresh()
+      return true
     } catch (error) {
       console.error("Error marking payment as paid:", error)
       throw error
@@ -79,7 +74,7 @@ export function usePayments() {
   }
 
   const getStudentPayments = (studentId: string) => {
-    return getPaymentsByStudent(studentId)
+    return payments.filter(p => p.studentId === studentId)
   }
 
   return {

@@ -53,7 +53,7 @@ export function StudentsView() {
     (student) =>
       student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       student.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.phone.includes(searchTerm),
+      (student.phone?.includes(searchTerm) ?? false),
   )
 
   const handleStudentSuccess = () => {
@@ -83,7 +83,7 @@ export function StudentsView() {
   const getStudentStats = (studentId: string) => {
     const studentClasses = classes.filter((c) => c.studentId === studentId)
     const completedClasses = studentClasses.filter((c) => c.status === "completed").length
-    const scheduledClasses = studentClasses.filter((c) => c.status === "scheduled").length
+    const scheduledClasses = studentClasses.filter((c) => c.status === "booked").length
     const totalEarnings = studentClasses.filter((c) => c.status === "completed").reduce((sum, c) => sum + c.value, 0)
 
     return {
@@ -106,23 +106,6 @@ export function StudentsView() {
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold">Alunos</h2>
 
-          <Dialog open={newStudentOpen} onOpenChange={setNewStudentOpen}>
-            <DialogTrigger asChild>
-              <Button className="h-12 px-6 flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white">
-                <UserPlus className="h-5 w-5 shrink-0" />
-                <span className="hidden sm:inline truncate">Novo Aluno</span>
-                <span className="sm:hidden">Novo</span>
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="w-[95vw] max-w-md mx-auto max-h-[90vh] bg-background border">
-              <DialogHeader>
-                <DialogTitle>Adicionar Aluno</DialogTitle>
-              </DialogHeader>
-              <ScrollArea className="max-h-[70vh]">
-                <NewStudentForm onSuccess={handleStudentSuccess} onCancel={() => setNewStudentOpen(false)} />
-              </ScrollArea>
-            </DialogContent>
-          </Dialog>
         </div>
 
         <div className="relative">
@@ -182,60 +165,39 @@ export function StudentsView() {
                         </div>
                       </div>
                     </div>
-                    <div className="flex gap-1 shrink-0">
-                      <Dialog
-                        open={editingStudent?.id === student.id}
-                        onOpenChange={(open) => !open && setEditingStudent(null)}
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-primary"
+                        onClick={() => window.location.href = `mailto:${student.email}`}
+                        title="Enviar email"
                       >
-                        <DialogTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => setEditingStudent(student)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="w-[95vw] max-w-md mx-auto max-h-[90vh] bg-background border">
-                          <DialogHeader>
-                            <DialogTitle>Editar Aluno</DialogTitle>
-                          </DialogHeader>
-                          <ScrollArea className="max-h-[70vh]">
-                            <NewStudentForm
-                              student={editingStudent}
-                              onSuccess={handleStudentSuccess}
-                              onCancel={() => setEditingStudent(null)}
-                            />
-                          </ScrollArea>
-                        </DialogContent>
-                      </Dialog>
-
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-error hover:text-error">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Tem certeza que deseja excluir o aluno "{student.name}"? Esta ação não pode ser desfeita e
-                              todas as aulas relacionadas também serão removidas.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => handleDeleteStudent(student.id)}
-                              className="bg-error text-error-foreground hover:bg-error/90"
-                            >
-                              Excluir
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                        <Mail className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-green-600"
+                        onClick={() => {
+                          if (student.phone) {
+                            const cleanPhone = student.phone.replace(/\D/g, '')
+                            window.open(`https://wa.me/55${cleanPhone}`, '_blank')
+                          }
+                        }}
+                        title="Conversar no WhatsApp"
+                      >
+                        <Phone className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        onClick={() => handleDeleteStudent(student.id)}
+                        title="Remover aluno"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 </CardHeader>

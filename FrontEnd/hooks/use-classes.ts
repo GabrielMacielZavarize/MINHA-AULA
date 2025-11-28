@@ -2,15 +2,13 @@
 
 import { useState, useEffect } from "react"
 import {
-  getAllClasses,
-  createClass as createClassStorage,
-  updateClass as updateClassStorage,
-  deleteClass as deleteClassStorage,
-  getClassesByStudent,
-  initializeStorage,
+  getClasses,
+  createClass as createClassDb,
+  updateClass as updateClassDb,
+  deleteClass as deleteClassDb,
   type Class,
   type ClassTag,
-} from "@/lib/storage"
+} from "@/lib/supabase-db"
 
 export type { Class, ClassTag }
 
@@ -18,9 +16,10 @@ export function useClasses() {
   const [classes, setClasses] = useState<Class[]>([])
   const [loading, setLoading] = useState(true)
 
-  const refresh = () => {
+  const refresh = async () => {
     try {
-      const allClasses = getAllClasses()
+      setLoading(true)
+      const allClasses = await getClasses()
       setClasses(allClasses)
     } catch (error) {
       console.error("Error loading classes:", error)
@@ -31,13 +30,12 @@ export function useClasses() {
   }
 
   useEffect(() => {
-    initializeStorage()
     refresh()
   }, [])
 
-  const createClass = (data: Omit<Class, "id" | "createdAt" | "updatedAt">) => {
+  const createClass = async (data: Omit<Class, "id" | "createdAt" | "updatedAt" | "teacherId" | "status">) => {
     try {
-      const newClass = createClassStorage(data)
+      const newClass = await createClassDb(data)
       refresh()
       return newClass
     } catch (error) {
@@ -48,7 +46,7 @@ export function useClasses() {
 
   const updateClass = async (id: string, data: Partial<Class>) => {
     try {
-      const updatedClass = updateClassStorage(id, data)
+      const updatedClass = await updateClassDb(id, data)
       refresh()
       return updatedClass
     } catch (error) {
@@ -59,7 +57,7 @@ export function useClasses() {
 
   const deleteClass = async (id: string) => {
     try {
-      deleteClassStorage(id)
+      await deleteClassDb(id)
       refresh()
     } catch (error) {
       console.error("Error deleting class:", error)
@@ -68,7 +66,7 @@ export function useClasses() {
   }
 
   const getStudentClasses = (studentId: string) => {
-    return getClassesByStudent(studentId)
+    return classes.filter(c => c.studentId === studentId)
   }
 
   return {

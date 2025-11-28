@@ -52,7 +52,7 @@ import {
 } from "recharts"
 
 export function FinancialView() {
-  const { payments, markAsPaid, refresh } = usePayments()
+  const { payments, markAsPaid, createPayment, refresh } = usePayments()
   const { classes } = useClasses()
   const { students } = useStudents()
 
@@ -74,10 +74,48 @@ export function FinancialView() {
     }
   }, [refresh])
 
+  // Merge existing payments with implicit payments from classes
+  const mergedPayments = useMemo(() => {
+    // Create a map of existing payments by classId for quick lookup
+    const paymentMap = new Map(payments.map(p => [p.classId, p]))
+
+    const implicitPayments = classes
+      .filter(c => {
+        // Filter classes that:
+        // 1. Have a value > 0
+        // 2. Are NOT cancelled or pending_approval
+        // 3. Do NOT have an existing payment record
+        return (
+          c.value > 0 && 
+          c.status !== 'cancelled' && 
+          c.status !== 'pending_approval' &&
+          c.studentId && // Must have a student to have a payment
+          !paymentMap.has(c.id)
+        )
+      })
+      .map(c => ({
+        id: `implicit-${c.id}`, // Temporary ID for UI
+        isImplicit: true,
+        studentId: c.studentId,
+        teacherId: c.teacherId,
+        classId: c.id,
+        amount: c.value,
+        status: 'pending',
+        createdAt: c.date, // Use class date as creation date for implicit payments
+        updatedAt: c.date,
+        studentName: c.studentName,
+        subject: c.subject,
+        date: c.date
+      }))
+
+    return [...payments, ...implicitPayments]
+  }, [payments, classes])
+
   const filteredPayments = useMemo(() => {
     const now = new Date()
 
-    return payments.filter((payment) => {
+    return mergedPayments.filter((payment) => {
+      if (!payment.date) return false
       const paymentDate = parseISO(payment.date)
 
       switch (selectedPeriod) {
@@ -104,7 +142,7 @@ export function FinancialView() {
           return true
       }
     })
-  }, [payments, selectedPeriod, customStartDate, customEndDate])
+  }, [mergedPayments, selectedPeriod, customStartDate, customEndDate])
 
   const stats = useMemo(() => {
     const now = new Date()
@@ -113,12 +151,14 @@ export function FinancialView() {
     const lastMonthStart = startOfMonth(subMonths(now, 1))
     const lastMonthEnd = endOfMonth(subMonths(now, 1))
 
-    const currentMonthPayments = payments.filter((p) => {
+    const currentMonthPayments = mergedPayments.filter((p) => {
+      if (!p.date) return false
       const date = parseISO(p.date)
       return date >= currentMonthStart && date <= currentMonthEnd
     })
 
-    const lastMonthPayments = payments.filter((p) => {
+    const lastMonthPayments = mergedPayments.filter((p) => {
+      if (!p.date) return false
       const date = parseISO(p.date)
       return date >= lastMonthStart && date <= lastMonthEnd
     })
@@ -151,10 +191,10 @@ export function FinancialView() {
       lastMonthRevenue,
       revenueDifference,
     }
-  }, [filteredPayments, classes, students, payments])
+  }, [filteredPayments, classes, students, mergedPayments])
 
   const monthlyData = useMemo(() => {
-    if (payments.length === 0) {
+    if (mergedPayments.length === 0) {
       return []
     }
 
@@ -168,7 +208,8 @@ export function FinancialView() {
       const monthStart = startOfMonth(month)
       const monthEnd = endOfMonth(month)
 
-      const monthPayments = payments.filter((p) => {
+      const monthPayments = mergedPayments.filter((p) => {
+        if (!p.date) return false
         const date = parseISO(p.date)
         return date >= monthStart && date <= monthEnd
       })
@@ -186,7 +227,7 @@ export function FinancialView() {
     })
 
     return data
-  }, [payments])
+  }, [mergedPayments])
 
   const studentData = useMemo(() => {
     if (classes.length === 0) {
@@ -205,7 +246,7 @@ export function FinancialView() {
 
       current.total++
       if (classItem.status === "completed") current.completed++
-      if (classItem.status === "scheduled") current.scheduled++
+      if (classItem.status === "booked") current.scheduled++
 
       studentMap.set(classItem.studentId, current)
     })
@@ -217,9 +258,22 @@ export function FinancialView() {
     return data
   }, [classes])
 
-  const handleMarkAsPaid = async (paymentId: string) => {
+  const handleMarkAsPaid = async (payment: any) => {
     try {
-      await markAsPaid(paymentId)
+      if (payment.isImplicit) {
+        // Create new payment
+        await createPayment({
+          classId: payment.classId,
+          studentId: payment.studentId,
+          teacherId: payment.teacherId,
+          amount: payment.amount,
+          status: 'paid'
+        })
+      } else {
+        // Update existing payment
+        await markAsPaid(payment.id)
+      }
+      
       toast({
         title: "Sucesso",
         description: "Pagamento marcado como pago",
@@ -227,6 +281,7 @@ export function FinancialView() {
       refresh()
       window.dispatchEvent(new CustomEvent("paymentUpdated"))
     } catch (error) {
+      console.error("Error marking as paid:", error)
       toast({
         title: "Erro",
         description: "Erro ao marcar pagamento como pago",
@@ -391,9 +446,9 @@ export function FinancialView() {
         }
 
         doc.setTextColor(textColor[0], textColor[1], textColor[2])
-        doc.text(format(parseISO(payment.date), "dd/MM/yyyy"), 25, yPosition)
-        doc.text(payment.studentName.substring(0, 18), 50, yPosition)
-        doc.text(payment.subject.substring(0, 18), 95, yPosition)
+        doc.text(payment.date ? format(parseISO(payment.date), "dd/MM/yyyy") : "-", 25, yPosition)
+        doc.text((payment.studentName || "").substring(0, 18), 50, yPosition)
+        doc.text((payment.subject || "").substring(0, 18), 95, yPosition)
         doc.text(formatCurrency(payment.amount), 135, yPosition)
 
         if (payment.status === "paid") {
@@ -440,20 +495,20 @@ export function FinancialView() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <h2 className="text-2xl font-bold">Financeiro</h2>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <Button
             variant="outline"
             size="icon"
             onClick={() => setHideFinancialData(!hideFinancialData)}
-            className="h-10 w-10"
+            className="h-10 w-10 shrink-0"
           >
             {hideFinancialData ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </Button>
           <Button
             onClick={generatePDF}
-            className="h-10 px-4 flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white"
+            className="h-10 px-4 flex-1 sm:flex-none items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white"
           >
             <Download className="h-4 w-4" />
             Exportar PDF
@@ -732,14 +787,17 @@ export function FinancialView() {
               ) : (
                 <div className="space-y-4">
                   {filteredPayments
-                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                    .sort((a, b) => {
+                      if (!a.date || !b.date) return 0
+                      return new Date(b.date).getTime() - new Date(a.date).getTime()
+                    })
                     .map((payment) => (
                       <div
                         key={payment.id}
-                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                        className="flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors gap-4"
                       >
                         <div className="flex-1">
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-start md:items-center gap-3">
                             <div>
                               <h4 className="font-semibold">{payment.studentName}</h4>
                               <p className="text-sm text-muted-foreground">{payment.subject}</p>
@@ -748,13 +806,13 @@ export function FinancialView() {
                           <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
                             <div className="flex items-center gap-1">
                               <Calendar className="h-3 w-3" />
-                              {format(parseISO(payment.date), "dd/MM/yyyy", { locale: ptBR })}
+                              {payment.date ? format(parseISO(payment.date), "dd/MM/yyyy", { locale: ptBR }) : "-"}
                             </div>
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-4">
-                          <div className="text-right">
+                        <div className="flex flex-col md:flex-row items-end md:items-center justify-between gap-3 w-full md:w-auto">
+                          <div className="flex flex-row md:flex-col items-center md:items-end gap-3 md:gap-0 w-full md:w-auto justify-between md:justify-end">
                             <div className="text-lg font-bold text-blue-600">{formatCurrency(payment.amount)}</div>
                             <Badge
                               variant={payment.status === "paid" ? "default" : "secondary"}
@@ -771,8 +829,8 @@ export function FinancialView() {
                           {payment.status === "pending" && (
                             <Button
                               size="sm"
-                              onClick={() => handleMarkAsPaid(payment.id)}
-                              className="bg-green-500 hover:bg-green-600 text-white"
+                              onClick={() => handleMarkAsPaid(payment)}
+                              className="bg-green-500 hover:bg-green-600 text-white w-full md:w-auto"
                             >
                               <CheckCircle className="h-4 w-4 mr-1" />
                               Marcar como Pago

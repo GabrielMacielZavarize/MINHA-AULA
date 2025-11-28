@@ -51,20 +51,31 @@ export function ClassActionsMenu({ classItem, onUpdate }: ClassActionsMenuProps)
 
   const handleCompleteClass = async () => {
     setLoading(true)
+    if (!classItem.studentId) {
+      toast({
+        title: "Erro",
+        description: "Esta aula não tem um aluno associado.",
+        variant: "destructive",
+      })
+      setLoading(false)
+      return
+    }
+
     try {
       // Atualizar status da aula para concluída
       await updateClass(classItem.id, { status: "completed" })
 
       // Criar pagamento pendente
       await createPayment({
-        studentId: classItem.studentId,
+        studentId: classItem.studentId!,
+        teacherId: classItem.teacherId,
         studentName: classItem.studentName,
         classId: classItem.id,
         subject: classItem.subject,
         date: classItem.date,
         amount: classItem.value,
         status: "pending",
-        notes: `Pagamento da aula de ${classItem.subject} - ${classItem.date} às ${classItem.time}`,
+
       })
 
       toast({
@@ -141,7 +152,7 @@ export function ClassActionsMenu({ classItem, onUpdate }: ClassActionsMenuProps)
     if (onUpdate) onUpdate()
   }
 
-  const canComplete = classItem.status === "scheduled" || classItem.status === "pending"
+  const canComplete = classItem.status === "booked"
   const canEdit = classItem.status !== "completed"
 
   return (

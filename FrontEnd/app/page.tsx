@@ -1,26 +1,44 @@
 "use client"
 
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import { Loader2 } from "lucide-react"
+import { supabase, getProfile } from "@/lib/supabase-db"
 
-export default function HomePage() {
+export default function Home() {
   const router = useRouter()
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const user = localStorage.getItem("minha-aula-current-user")
-    if (user) {
-      router.replace('/page/dashboard')
-    } else {
-      router.replace('/login')
+    const checkUser = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+
+        if (!session) {
+          router.push("/login")
+          return
+        }
+
+        // Redirect to dashboard (role handling is done there)
+        router.push("/dashboard")
+      } catch (error) {
+        console.error("Error checking user:", error)
+        router.push("/login")
+      } finally {
+        setLoading(false)
+      }
     }
+
+    checkUser()
   }, [router])
 
-  return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Carregando...</p>
-        </div>
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-950">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
       </div>
-  );
+    )
+  }
+
+  return null
 }

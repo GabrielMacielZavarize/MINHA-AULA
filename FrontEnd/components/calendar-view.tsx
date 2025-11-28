@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
@@ -15,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useI18n } from "@/lib/i18n"
 import { useClasses } from "@/hooks/use-classes"
 import { useStudents } from "@/hooks/use-students"
-import { NewClassForm } from "@/components/new-class-form"
+import { CreateClassModal } from "@/components/create-class-modal"
 import { ClassActionsMenu } from "@/components/class-actions-menu"
 import { formatCurrency } from "@/lib/utils"
 import {
@@ -272,22 +271,18 @@ export function CalendarView() {
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold">Agenda</h2>
 
-          <Dialog open={newClassOpen} onOpenChange={setNewClassOpen}>
-            <DialogTrigger asChild>
-              <Button className="h-12 px-6 flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white">
-                <Plus className="h-5 w-5 shrink-0" />
-                <span className="truncate">Nova Aula</span>
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="w-[95vw] max-w-md mx-auto max-h-[90vh] bg-background border">
-              <DialogHeader>
-                <DialogTitle>Agendar Nova Aula</DialogTitle>
-              </DialogHeader>
-              <ScrollArea className="max-h-[70vh]">
-                <NewClassForm onSuccess={handleClassSuccess} onCancel={() => setNewClassOpen(false)} />
-              </ScrollArea>
-            </DialogContent>
-          </Dialog>
+          <CreateClassModal
+            open={newClassOpen}
+            onOpenChange={setNewClassOpen}
+            onSuccess={handleClassSuccess}
+          />
+          <Button 
+            onClick={() => setNewClassOpen(true)}
+            className="h-12 px-6 flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white"
+          >
+            <Plus className="h-5 w-5 shrink-0" />
+            <span className="truncate">Nova Aula</span>
+          </Button>
         </div>
 
         <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as any)} className="w-full">
