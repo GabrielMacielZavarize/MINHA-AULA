@@ -7,8 +7,7 @@ import { supabase } from "@/lib/supabase-db"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Mail, Lock, Loader2, Eye, EyeOff, GraduationCap } from "lucide-react"
+import { Mail, Lock, Loader2, Eye, EyeOff, GraduationCap, BookOpen, Users, Calendar } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
 export default function LoginPage() {
@@ -16,7 +15,7 @@ export default function LoginPage() {
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
-  
+
   const [formData, setFormData] = useState({
     email: "",
     password: ""
@@ -43,8 +42,8 @@ export default function LoginPage() {
       console.error("Login error:", error)
       toast({
         title: "Erro ao entrar",
-        description: error.message === "Invalid login credentials" 
-          ? "Email ou senha incorretos." 
+        description: error.message === "Invalid login credentials"
+          ? "Email ou senha incorretos."
           : error.message,
         variant: "destructive",
       })
@@ -54,81 +53,133 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 p-4">
-      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
-      
-      <Card className="w-full max-w-md bg-black/40 backdrop-blur-xl border-white/10 text-white shadow-2xl relative z-10">
-        <CardHeader className="space-y-2 text-center pb-8">
-          <div className="flex justify-center mb-4">
-            <div className="h-12 w-12 rounded-full bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
-              <GraduationCap className="h-6 w-6 text-white" />
+    <div className="min-h-screen flex">
+      {/* Painel esquerdo — branding (oculto em mobile) */}
+      <div className="hidden lg:flex lg:w-[480px] xl:w-[560px] bg-primary flex-col justify-between p-10 shrink-0">
+        <div className="flex items-center gap-2.5">
+          <div className="h-9 w-9 rounded-lg bg-white/15 flex items-center justify-center">
+            <GraduationCap className="h-5 w-5 text-white" />
+          </div>
+          <span className="font-bold text-lg text-white tracking-tight">Minha Aula</span>
+        </div>
+
+        <div className="space-y-8">
+          <div className="space-y-3">
+            <h1 className="text-4xl font-bold text-white leading-tight">
+              Conectando professores e alunos
+            </h1>
+            <p className="text-primary-foreground/75 text-lg leading-relaxed">
+              Gerencie suas aulas, acompanhe pagamentos e organize sua agenda em um só lugar.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-start gap-3">
+              <div className="h-8 w-8 rounded-md bg-white/15 flex items-center justify-center shrink-0 mt-0.5">
+                <BookOpen className="h-4 w-4 text-white" />
+              </div>
+              <div>
+                <p className="font-semibold text-white text-sm">Gestão de Aulas</p>
+                <p className="text-primary-foreground/70 text-sm">Crie, edite e acompanhe todas as suas aulas particulares com facilidade.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="h-8 w-8 rounded-md bg-white/15 flex items-center justify-center shrink-0 mt-0.5">
+                <Users className="h-4 w-4 text-white" />
+              </div>
+              <div>
+                <p className="font-semibold text-white text-sm">Controle de Alunos</p>
+                <p className="text-primary-foreground/70 text-sm">Mantenha o histórico completo de cada aluno e seus pagamentos.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="h-8 w-8 rounded-md bg-white/15 flex items-center justify-center shrink-0 mt-0.5">
+                <Calendar className="h-4 w-4 text-white" />
+              </div>
+              <div>
+                <p className="font-semibold text-white text-sm">Agenda Inteligente</p>
+                <p className="text-primary-foreground/70 text-sm">Visualize seus compromissos por dia, semana ou mês.</p>
+              </div>
             </div>
           </div>
-          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
-            Bem-vindo de volta
-          </CardTitle>
-          <CardDescription className="text-slate-400 text-base">
-            Entre na sua conta para continuar sua jornada
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-slate-300">Email</Label>
-              <div className="relative group">
-                <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400 group-focus-within:text-blue-400 transition-colors" />
+        </div>
+
+        <p className="text-primary-foreground/50 text-xs">
+          © {new Date().getFullYear()} Minha Aula. Projeto acadêmico.
+        </p>
+      </div>
+
+      {/* Painel direito — formulário */}
+      <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 bg-background">
+        {/* Logo mobile */}
+        <div className="lg:hidden flex items-center gap-2 mb-10">
+          <div className="h-9 w-9 rounded-lg bg-primary flex items-center justify-center">
+            <GraduationCap className="h-5 w-5 text-primary-foreground" />
+          </div>
+          <span className="font-bold text-lg tracking-tight">Minha Aula</span>
+        </div>
+
+        <div className="w-full max-w-[360px] space-y-8">
+          <div className="space-y-1.5">
+            <h2 className="text-2xl font-bold tracking-tight text-foreground">
+              Bem-vindo de volta
+            </h2>
+            <p className="text-muted-foreground text-sm">
+              Entre na sua conta para continuar
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="space-y-1.5">
+              <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                 <Input
                   id="email"
                   type="email"
                   placeholder="seu@email.com"
-                  className="pl-10 h-11 bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-blue-500/50 focus:bg-white/10 transition-all"
+                  className="pl-9 h-10"
                   value={formData.email}
                   onChange={handleChange}
                   required
+                  autoComplete="email"
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-slate-300">Senha</Label>
-                <Link href="#" className="text-xs text-blue-400 hover:text-blue-300 hover:underline">
+                <Label htmlFor="password" className="text-sm font-medium">Senha</Label>
+                <Link href="#" className="text-xs text-primary hover:underline">
                   Esqueceu a senha?
                 </Link>
               </div>
-              <div className="relative group">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400 group-focus-within:text-blue-400 transition-colors" />
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="******"
-                  className="pl-10 pr-10 h-11 bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-blue-500/50 focus:bg-white/10 transition-all"
+                  placeholder="••••••••"
+                  className="pl-9 pr-10 h-10"
                   value={formData.password}
                   onChange={handleChange}
                   required
+                  autoComplete="current-password"
                 />
-                <Button
+                <button
                   type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-0 top-0 h-11 w-11 text-slate-400 hover:text-white hover:bg-transparent"
                   onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                  <span className="sr-only">
-                    {showPassword ? "Ocultar senha" : "Mostrar senha"}
-                  </span>
-                </Button>
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
             </div>
 
             <Button
               type="submit"
-              className="w-full h-11 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-medium shadow-lg shadow-blue-500/20 transition-all hover:scale-[1.02]"
+              className="w-full h-10"
               disabled={loading}
             >
               {loading ? (
@@ -141,16 +192,15 @@ export default function LoginPage() {
               )}
             </Button>
           </form>
-        </CardContent>
-        <CardFooter className="flex justify-center pb-8">
-          <p className="text-sm text-slate-400">
+
+          <p className="text-center text-sm text-muted-foreground">
             Não tem uma conta?{" "}
-            <Link href="/register" className="text-blue-400 hover:text-blue-300 font-medium hover:underline transition-colors">
+            <Link href="/register" className="text-primary font-medium hover:underline">
               Criar conta gratuita
             </Link>
           </p>
-        </CardFooter>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }

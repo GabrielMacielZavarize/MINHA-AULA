@@ -7,13 +7,14 @@ import {
   Search,
   BookOpen,
   Clock,
-  CheckCircle
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { PageHeader } from "@/components/page-header"
+import { EmptyState } from "@/components/empty-state"
 import { formatCurrency } from "@/lib/utils"
 import { format, parseISO } from "date-fns"
 import { ptBR } from "date-fns/locale"
@@ -66,8 +67,8 @@ function StudentDashboardContent({ profile }: StudentDashboardProps) {
         title: "Aula agendada!",
         description: "Você agendou a aula com sucesso.",
       })
-      fetchData() // Refresh list
-      setActiveTab("schedule") // Switch to schedule tab
+      fetchData()
+      setActiveTab("schedule")
     } catch (error) {
       console.error("Error booking class:", error)
       toast({
@@ -78,147 +79,140 @@ function StudentDashboardContent({ profile }: StudentDashboardProps) {
     }
   }
 
-  const filteredClasses = openClasses.filter(c => 
+  const filteredClasses = openClasses.filter(c =>
     c.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
     c.teacherName?.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   return (
     <div className="space-y-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">
-              Painel do Aluno
-            </h1>
-            <p className="text-slate-400 mt-2 text-lg">Bem-vindo, {profile.name}!</p>
+      <PageHeader title="Painel do Aluno" description={`Bem-vindo, ${profile.name}`} />
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="marketplace">Encontrar Aulas</TabsTrigger>
+          <TabsTrigger value="schedule">Minhas Aulas</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="marketplace" className="space-y-6">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            <Input
+              placeholder="Buscar por matéria ou professor..."
+              className="pl-9 h-10"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
-        </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="marketplace">Encontrar Aulas</TabsTrigger>
-            <TabsTrigger value="schedule">Minhas Aulas</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="marketplace" className="space-y-8">
-            <Card className="bg-gradient-to-br from-blue-50/50 to-slate-50/50 dark:from-blue-900/40 dark:via-slate-900/40 dark:to-slate-900/40 border-border dark:border-blue-500/20 backdrop-blur-xl shadow-lg dark:shadow-blue-900/10">
-              <CardHeader>
-                <CardTitle className="text-2xl text-foreground dark:text-white">Encontrar Aulas</CardTitle>
-                <CardDescription className="text-muted-foreground dark:text-slate-400">Busque por matéria ou professor para começar a aprender</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="relative group">
-                  <Search className="absolute left-4 top-3.5 h-5 w-5 text-slate-400 group-focus-within:text-blue-400 transition-colors" />
-                  <Input 
-                    placeholder="Ex: Matemática, Inglês, Professor João..." 
-                    className="pl-12 h-12 bg-black/40 border-white/10 text-white placeholder:text-slate-500 focus-visible:ring-blue-500/50 focus-visible:border-blue-500/50 rounded-xl transition-all"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {filteredClasses.length === 0 ? (
-                <div className="col-span-full text-center py-16 text-slate-500">
-                  {loading ? (
-                    <div className="flex flex-col items-center gap-2">
-                      <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
-                      <p>Carregando aulas...</p>
-                    </div>
-                  ) : (
-                    <>
-                      <Search className="h-12 w-12 mx-auto mb-4 opacity-20" />
-                      <p>Nenhuma aula encontrada com esses termos.</p>
-                    </>
-                  )}
-                </div>
-              ) : (
-                filteredClasses.map((c) => (
-                  <Card key={c.id} className="group bg-slate-900/40 backdrop-blur-xl border-white/5 hover:border-blue-500/30 hover:bg-slate-900/60 transition-all duration-300 shadow-lg shadow-black/20">
-                    <CardHeader className="pb-3">
-                      <div className="flex justify-between items-start gap-4">
-                        <div>
-                          <CardTitle className="text-xl text-white group-hover:text-blue-400 transition-colors">{c.subject}</CardTitle>
-                          <CardDescription className="text-slate-400 mt-1">Prof. {c.teacherName}</CardDescription>
-                        </div>
-                        <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/20 px-3 py-1 text-sm font-bold whitespace-nowrap">
-                          {formatCurrency(c.value)}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="space-y-2 text-sm text-slate-400">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4 text-blue-500/70" />
-                          {format(parseISO(c.date), "dd 'de' MMMM", { locale: ptBR })}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4 text-blue-500/70" />
-                          {c.time} • {c.duration} min
-                        </div>
-                      </div>
-                      
-                      <Button 
-                        className="w-full mt-2 bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-900/20 transition-all" 
-                        onClick={() => handleBookClass(c.id)}
-                      >
-                        Agendar Aula
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))
-              )}
+          {loading ? (
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {[1, 2, 3].map((i) => <div key={i} className="h-40 bg-muted animate-pulse rounded-xl" />)}
             </div>
-          </TabsContent>
+          ) : filteredClasses.length === 0 ? (
+            <EmptyState
+              icon={Search}
+              message={searchTerm ? "Nenhuma aula encontrada com esses termos." : "Nenhuma aula disponível no momento."}
+            />
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {filteredClasses.map((c) => (
+                <Card key={c.id} className="border-border flex flex-col">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <CardTitle className="text-base font-semibold text-foreground truncate">
+                          {c.subject}
+                        </CardTitle>
+                        <CardDescription className="text-sm mt-0.5">
+                          Prof. {c.teacherName}
+                        </CardDescription>
+                      </div>
+                      <Badge variant="secondary" className="text-sm font-semibold shrink-0">
+                        {formatCurrency(c.value)}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="flex-1 flex flex-col justify-between gap-4">
+                    <div className="space-y-2 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-3.5 w-3.5 text-primary" />
+                        {format(parseISO(c.date), "dd 'de' MMMM", { locale: ptBR })}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-3.5 w-3.5 text-primary" />
+                        {c.time} · {c.duration} min
+                      </div>
+                    </div>
+                    <Button
+                      className="w-full"
+                      onClick={() => handleBookClass(c.id)}
+                    >
+                      Agendar Aula
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </TabsContent>
 
-          <TabsContent value="schedule">
-            <Card className="bg-slate-900/40 backdrop-blur-xl border-white/5 shadow-lg shadow-black/20">
-              <CardHeader>
-                <CardTitle className="text-xl text-slate-200">Minhas Aulas Agendadas</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {myClasses.length === 0 ? (
-                  <div className="text-center py-16 text-slate-500">
-                    <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-20" />
-                    Você ainda não tem aulas agendadas.
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {myClasses.map((c) => (
-                      <div key={c.id} className="flex items-center justify-between p-4 border border-white/5 rounded-xl bg-white/5 hover:bg-white/10 transition-colors group">
-                        <div className="flex items-center gap-4">
-                          <div className="p-3 bg-blue-500/10 rounded-full group-hover:bg-blue-500/20 transition-colors">
-                            <BookOpen className="h-6 w-6 text-blue-400" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-slate-200 text-lg">{c.subject}</h3>
-                            <p className="text-sm text-slate-400">Prof. {c.teacherName}</p>
-                            <div className="flex items-center gap-2 mt-1 text-xs text-slate-500">
-                              <Calendar className="h-3 w-3" />
-                              {format(parseISO(c.date), "dd/MM/yyyy", { locale: ptBR })} às {c.time}
-                            </div>
+        <TabsContent value="schedule">
+          <Card className="border-border">
+            <CardHeader>
+              <CardTitle className="text-base font-semibold">Minhas Aulas Agendadas</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {myClasses.length === 0 ? (
+                <EmptyState icon={BookOpen} message="Você ainda não tem aulas agendadas." />
+              ) : (
+                <div className="space-y-3">
+                  {myClasses.map((c) => (
+                    <div key={c.id} className="flex items-center justify-between p-3 rounded-lg border border-border bg-card hover:bg-accent/50 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="h-9 w-9 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
+                          <BookOpen className="h-4 w-4 text-primary" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-semibold text-sm text-foreground">{c.subject}</p>
+                          <p className="text-xs text-muted-foreground">Prof. {c.teacherName}</p>
+                          <div className="flex items-center gap-1.5 mt-0.5 text-xs text-muted-foreground">
+                            <Calendar className="h-3 w-3" />
+                            {format(parseISO(c.date), "dd/MM/yyyy", { locale: ptBR })} às {c.time}
                           </div>
                         </div>
-                        <Badge variant="default" className="bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border-0 px-3 py-1">
-                          Confirmada
-                        </Badge>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                      <Badge variant="outline" className="text-xs bg-emerald-500/10 text-emerald-600 border-emerald-200 shrink-0">
+                        Confirmada
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
 
 export function StudentDashboard({ profile }: StudentDashboardProps) {
   return (
-    <Suspense fallback={<div className="space-y-8"><p>Carregando...</p></div>}>
+    <Suspense fallback={
+      <div className="space-y-8">
+        <div className="space-y-1">
+          <div className="h-7 w-44 bg-muted animate-pulse rounded-md" />
+          <div className="h-4 w-32 bg-muted animate-pulse rounded-md" />
+        </div>
+        <div className="h-10 w-60 bg-muted animate-pulse rounded-md" />
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="h-40 bg-muted animate-pulse rounded-xl" />
+          ))}
+        </div>
+      </div>
+    }>
       <StudentDashboardContent profile={profile} />
     </Suspense>
   )

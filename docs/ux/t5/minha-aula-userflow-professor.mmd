@@ -1,0 +1,42 @@
+flowchart LR
+    START([Inicio]) --> LOGIN["Login / Cadastro"]
+    LOGIN --> AUTH{"Autenticado?"}
+    AUTH -- "Nao" --> LOGIN
+    AUTH -- "Sim" --> DASH["Dashboard do professor"]
+    DASH --> CLASSES["Gerenciar Aulas"]
+    CLASSES --> NEW["Nova Aula"]
+    NEW --> FORM["Preencher dados<br/>Materia, data, horario,<br/>duracao, valor, observacoes"]
+    FORM --> ENROLL{"Informou matricula?"}
+
+    ENROLL -- "Nao" --> OPEN["Salvar aula aberta<br/>Status open"]
+    OPEN --> LIST["Lista Gerenciar Aulas"]
+
+    ENROLL -- "Sim" --> VALIDATE["Validar matricula<br/>Busca por 8 digitos"]
+    VALIDATE --> FOUND{"Aluno encontrado?"}
+    FOUND -- "Nao" --> ERROR["Erro de matricula<br/>Aluno nao encontrado"]
+    ERROR --> FORM
+    FOUND -- "Sim" --> INVITE["Salvar convite<br/>Status pending_approval"]
+    INVITE --> NOTIFY["Notificar aluno"]
+    NOTIFY --> LIST
+
+    LIST --> MANAGE{"Precisa editar<br/>ou gerenciar?"}
+    MANAGE -- "Nao" --> END([Fim])
+    MANAGE -- "Sim" --> EDIT["Editar Aula"]
+    EDIT --> UPDATE["Alterar dados / status<br/>Atualiza data, horario,<br/>status e pagamento"]
+    UPDATE --> END
+
+    classDef startend fill:#f0fdf4,stroke:#16a34a,color:#0f172a,stroke-width:1.8px;
+    classDef screen fill:#eff6ff,stroke:#2563eb,color:#0f172a,stroke-width:1.5px;
+    classDef action fill:#ffffff,stroke:#94a3b8,color:#0f172a,stroke-width:1.5px;
+    classDef decision fill:#fff7ed,stroke:#f59e0b,color:#0f172a,stroke-width:1.8px;
+    classDef state fill:#f5f3ff,stroke:#7c3aed,color:#0f172a,stroke-width:1.5px;
+    classDef good fill:#f0fdf4,stroke:#16a34a,color:#0f172a,stroke-width:1.5px;
+    classDef warn fill:#fff1f2,stroke:#e11d48,color:#0f172a,stroke-width:1.5px;
+
+    class START,END startend;
+    class LOGIN,DASH,CLASSES,NEW,EDIT screen;
+    class FORM,VALIDATE,UPDATE,LIST action;
+    class AUTH,ENROLL,FOUND,MANAGE decision;
+    class INVITE state;
+    class OPEN,NOTIFY good;
+    class ERROR warn;

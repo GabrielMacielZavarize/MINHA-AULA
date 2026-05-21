@@ -172,8 +172,9 @@ export function SettingsView() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold">Configurações</h2>
+      <div className="space-y-1">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Configurações</h1>
+        <p className="text-muted-foreground text-sm">Gerencie seu perfil, preferências e notificações.</p>
       </div>
 
       <Tabs defaultValue="profile" className="w-full">
@@ -216,13 +217,13 @@ export function SettingsView() {
                       <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-sm font-semibold text-blue-800 dark:text-blue-200 mb-1">
+                            <p className="text-sm font-semibold text-primary mb-1">
                               Sua Matrícula
                             </p>
-                            <p className="text-2xl font-mono font-bold text-blue-600 dark:text-blue-400">
+                            <p className="text-2xl font-mono font-bold text-primary">
                               {userProfile.enrollmentNumber}
                             </p>
-                            <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                            <p className="text-xs text-primary mt-1">
                               Compartilhe esta matrícula com seus professores
                             </p>
                           </div>

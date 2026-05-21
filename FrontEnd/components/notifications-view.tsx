@@ -7,6 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
 import { getNotifications, markNotificationAsRead, markAllNotificationsAsRead, deleteNotification, type Notification, supabase } from "@/lib/supabase-db"
+import { PageHeader } from "@/components/page-header"
+import { EmptyState } from "@/components/empty-state"
 import { formatDistanceToNow } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { toast } from "@/hooks/use-toast"
@@ -90,12 +92,7 @@ export function NotificationsView() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Notificações</h2>
-          <p className="text-muted-foreground">
-            Fique por dentro das atualizações das suas aulas.
-          </p>
-        </div>
+        <PageHeader title="Notificações" description="Fique por dentro das atualizações das suas aulas." />
         {unreadCount > 0 && (
           <Button variant="outline" onClick={handleMarkAllAsRead}>
             <Check className="mr-2 h-4 w-4" />
@@ -122,12 +119,13 @@ export function NotificationsView() {
         <CardContent>
           <ScrollArea className="h-[600px] pr-4">
             {loading ? (
-              <div className="text-center py-10 text-muted-foreground">Carregando...</div>
-            ) : notifications.length === 0 ? (
-              <div className="text-center py-10 text-muted-foreground">
-                <Bell className="h-12 w-12 mx-auto mb-4 opacity-20" />
-                Nenhuma notificação encontrada.
+              <div className="space-y-3">
+                {[1,2,3].map(i => (
+                  <div key={i} className="h-16 bg-muted animate-pulse rounded-lg" />
+                ))}
               </div>
+            ) : notifications.length === 0 ? (
+              <EmptyState icon={Bell} message="Nenhuma notificação encontrada." />
             ) : (
               <div className="space-y-4">
                 {notifications.map((notification) => (
@@ -138,7 +136,7 @@ export function NotificationsView() {
                     }`}
                   >
                     <div className={`p-2 rounded-full shrink-0 ${
-                      notification.type === 'reschedule' ? 'bg-orange-100 text-orange-600' : 'bg-blue-100 text-blue-600'
+                      notification.type === 'reschedule' ? 'bg-amber-500/10 text-amber-600' : 'bg-primary/10 text-primary'
                     }`}>
                       {notification.type === 'reschedule' ? <Calendar className="h-4 w-4" /> : <Info className="h-4 w-4" />}
                     </div>

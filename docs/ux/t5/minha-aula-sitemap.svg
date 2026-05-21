@@ -1,0 +1,167 @@
+<svg width="1800" height="1280" viewBox="0 0 1800 1280" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#475569" />
+    </marker>
+    <style>
+      .title { font: 700 34px 'Inter', Arial, sans-serif; fill: #0f172a; }
+      .subtitle { font: 400 17px 'Inter', Arial, sans-serif; fill: #475569; }
+      .section { font: 700 22px 'Inter', Arial, sans-serif; fill: #0f172a; }
+      .label { font: 700 16px 'Inter', Arial, sans-serif; fill: #0f172a; }
+      .small { font: 500 13px 'Inter', Arial, sans-serif; fill: #475569; }
+      .note { font: 500 12px 'Inter', Arial, sans-serif; fill: #64748b; }
+      .white { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; }
+      .shared { fill: #f8fafc; stroke: #94a3b8; stroke-width: 1.5; }
+      .teacher { fill: #eff6ff; stroke: #2563eb; stroke-width: 1.8; }
+      .student { fill: #f0fdf4; stroke: #16a34a; stroke-width: 1.8; }
+      .callout { fill: #fff7ed; stroke: #f59e0b; stroke-width: 1.5; stroke-dasharray: 6 4; }
+      .groupTeacher { fill: #f8fbff; stroke: #bfdbfe; stroke-width: 2; }
+      .groupStudent { fill: #f7fff9; stroke: #bbf7d0; stroke-width: 2; }
+      .line { stroke: #475569; stroke-width: 2.2; stroke-linecap: round; marker-end: url(#arrow); }
+      .branch { stroke: #94a3b8; stroke-width: 2; stroke-linecap: round; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect width="1800" height="1280" fill="#f8fafc" />
+  <rect x="28" y="28" width="1744" height="1224" rx="28" fill="#ffffff" stroke="#e2e8f0" stroke-width="2"/>
+
+  <text x="70" y="92" class="title">MINHA-AULA - Sitemap do produto</text>
+  <text x="70" y="122" class="subtitle">Arquitetura da informacao baseada no FrontEnd atual, com bifurcacao por papel.</text>
+
+  <rect x="1330" y="56" width="390" height="120" rx="20" class="white" />
+  <text x="1360" y="92" class="label">Legenda</text>
+  <rect x="1360" y="108" width="28" height="18" rx="6" class="shared" />
+  <text x="1400" y="122" class="small">Area compartilhada / neutra</text>
+  <rect x="1360" y="136" width="28" height="18" rx="6" class="teacher" />
+  <text x="1400" y="150" class="small">Professor</text>
+  <rect x="1510" y="136" width="28" height="18" rx="6" class="student" />
+  <text x="1550" y="150" class="small">Aluno</text>
+
+  <rect x="760" y="172" width="280" height="78" rx="18" class="shared" />
+  <text x="900" y="206" text-anchor="middle" class="label">Acesso</text>
+  <text x="900" y="229" text-anchor="middle" class="small">Entrada e redirecionamento inicial</text>
+
+  <line x1="900" y1="250" x2="900" y2="302" class="line" />
+
+  <rect x="210" y="308" width="280" height="82" rx="18" class="white" />
+  <text x="350" y="342" text-anchor="middle" class="label">/</text>
+  <text x="350" y="366" text-anchor="middle" class="small">Verifica sessao e redireciona</text>
+
+  <rect x="560" y="308" width="280" height="82" rx="18" class="white" />
+  <text x="700" y="342" text-anchor="middle" class="label">Login</text>
+  <text x="700" y="366" text-anchor="middle" class="small">Entrada de usuario</text>
+
+  <rect x="910" y="308" width="280" height="82" rx="18" class="white" />
+  <text x="1050" y="342" text-anchor="middle" class="label">Cadastro</text>
+  <text x="1050" y="366" text-anchor="middle" class="small">Conta de professor ou aluno</text>
+
+  <rect x="1260" y="308" width="300" height="82" rx="18" class="white" />
+  <text x="1410" y="342" text-anchor="middle" class="label">/dashboard</text>
+  <text x="1410" y="366" text-anchor="middle" class="small">Redireciona para a area autenticada</text>
+
+  <line x1="900" y1="250" x2="350" y2="308" class="branch" />
+  <line x1="900" y1="250" x2="700" y2="308" class="branch" />
+  <line x1="900" y1="250" x2="1050" y2="308" class="branch" />
+  <line x1="900" y1="250" x2="1410" y2="308" class="branch" />
+
+  <line x1="1410" y1="390" x2="1410" y2="444" class="line" />
+  <line x1="700" y1="390" x2="700" y2="444" class="branch" />
+  <line x1="1050" y1="390" x2="1050" y2="444" class="branch" />
+
+  <rect x="700" y="448" width="420" height="82" rx="20" class="shared" />
+  <text x="910" y="482" text-anchor="middle" class="label">Area autenticada</text>
+  <text x="910" y="506" text-anchor="middle" class="small">Layout lateral e navegacao principal por perfil</text>
+
+  <line x1="910" y1="530" x2="560" y2="586" class="line" />
+  <line x1="910" y1="530" x2="1240" y2="586" class="line" />
+
+  <rect x="70" y="586" width="770" height="570" rx="26" class="groupTeacher" />
+  <text x="110" y="626" class="section">Professor</text>
+  <text x="110" y="650" class="subtitle">Fluxo operacional e administrativo da oferta de aulas</text>
+
+  <rect x="110" y="694" width="250" height="78" rx="18" class="teacher" />
+  <text x="235" y="728" text-anchor="middle" class="label">Dashboard</text>
+  <text x="235" y="751" text-anchor="middle" class="small">Resumo e indicadores</text>
+
+  <rect x="400" y="694" width="260" height="78" rx="18" class="teacher" />
+  <text x="530" y="728" text-anchor="middle" class="label">Gerenciar Aulas</text>
+  <text x="530" y="751" text-anchor="middle" class="small">Lista, criacao e edicao</text>
+
+  <rect x="110" y="822" width="250" height="78" rx="18" class="teacher" />
+  <text x="235" y="856" text-anchor="middle" class="label">Agenda</text>
+  <text x="235" y="879" text-anchor="middle" class="small">Visao diaria, semanal e mensal</text>
+
+  <rect x="400" y="822" width="260" height="78" rx="18" class="teacher" />
+  <text x="530" y="856" text-anchor="middle" class="label">Meus Alunos</text>
+  <text x="530" y="879" text-anchor="middle" class="small">Historico e contato</text>
+
+  <rect x="110" y="950" width="250" height="78" rx="18" class="teacher" />
+  <text x="235" y="984" text-anchor="middle" class="label">Financeiro</text>
+  <text x="235" y="1007" text-anchor="middle" class="small">Pagamentos, filtros e PDF</text>
+
+  <rect x="400" y="950" width="260" height="78" rx="18" class="shared" />
+  <text x="530" y="984" text-anchor="middle" class="label">Notificacoes</text>
+  <text x="530" y="1007" text-anchor="middle" class="small">Avisos e atualizacoes</text>
+
+  <rect x="110" y="1070" width="250" height="60" rx="16" class="shared" />
+  <text x="235" y="1106" text-anchor="middle" class="label">Configuracoes</text>
+
+  <line x1="530" y1="772" x2="530" y2="822" class="branch" />
+  <line x1="530" y1="900" x2="530" y2="950" class="branch" />
+
+  <rect x="665" y="684" width="130" height="48" rx="14" class="callout" />
+  <text x="730" y="713" text-anchor="middle" class="small">Nova Aula</text>
+  <line x1="660" y1="708" x2="665" y2="708" class="branch" />
+
+  <rect x="665" y="742" width="130" height="48" rx="14" class="callout" />
+  <text x="730" y="771" text-anchor="middle" class="small">Editar Aula</text>
+  <line x1="660" y1="766" x2="665" y2="766" class="branch" />
+
+  <rect x="665" y="800" width="130" height="48" rx="14" class="callout" />
+  <text x="730" y="829" text-anchor="middle" class="small">Alterar status</text>
+  <line x1="660" y1="824" x2="665" y2="824" class="branch" />
+
+  <rect x="665" y="858" width="130" height="58" rx="14" class="callout" />
+  <text x="730" y="887" text-anchor="middle" class="small">Associar aluno</text>
+  <text x="730" y="904" text-anchor="middle" class="small">por matricula</text>
+  <line x1="660" y1="887" x2="665" y2="887" class="branch" />
+
+  <rect x="960" y="586" width="770" height="570" rx="26" class="groupStudent" />
+  <text x="1000" y="626" class="section">Aluno</text>
+  <text x="1000" y="650" class="subtitle">Busca, aceite e acompanhamento das aulas</text>
+
+  <rect x="1000" y="694" width="260" height="78" rx="18" class="student" />
+  <text x="1130" y="728" text-anchor="middle" class="label">Encontrar Aulas</text>
+  <text x="1130" y="751" text-anchor="middle" class="small">Marketplace por materia ou professor</text>
+
+  <rect x="1310" y="694" width="260" height="78" rx="18" class="student" />
+  <text x="1440" y="728" text-anchor="middle" class="label">Minhas Aulas</text>
+  <text x="1440" y="751" text-anchor="middle" class="small">Agenda, convites e historico</text>
+
+  <rect x="1000" y="822" width="260" height="78" rx="18" class="student" />
+  <text x="1130" y="856" text-anchor="middle" class="label">Meus Professores</text>
+  <text x="1130" y="879" text-anchor="middle" class="small">Historico e contato</text>
+
+  <rect x="1310" y="822" width="260" height="78" rx="18" class="shared" />
+  <text x="1440" y="856" text-anchor="middle" class="label">Notificacoes</text>
+  <text x="1440" y="879" text-anchor="middle" class="small">Convites e alertas</text>
+
+  <rect x="1000" y="950" width="260" height="78" rx="18" class="shared" />
+  <text x="1130" y="984" text-anchor="middle" class="label">Configuracoes</text>
+  <text x="1130" y="1007" text-anchor="middle" class="small">Perfil, preferencias e idioma</text>
+
+  <rect x="1590" y="684" width="110" height="48" rx="14" class="callout" />
+  <text x="1645" y="713" text-anchor="middle" class="small">Aceitar convite</text>
+  <line x1="1570" y1="708" x2="1590" y2="708" class="branch" />
+
+  <rect x="1590" y="742" width="110" height="48" rx="14" class="callout" />
+  <text x="1645" y="771" text-anchor="middle" class="small">Recusar convite</text>
+  <line x1="1570" y1="766" x2="1590" y2="766" class="branch" />
+
+  <rect x="1590" y="800" width="110" height="48" rx="14" class="callout" />
+  <text x="1645" y="829" text-anchor="middle" class="small">Ver historico</text>
+  <line x1="1570" y1="824" x2="1590" y2="824" class="branch" />
+
+  <rect x="70" y="1184" width="1660" height="44" rx="16" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5" />
+  <text x="100" y="1212" class="note">Notas: o diagrama exclui rotas legadas ou apenas de compatibilidade. Conteudo nao foi incluído porque nao aparece como area implementada nas rotas atuais.</text>
+</svg>

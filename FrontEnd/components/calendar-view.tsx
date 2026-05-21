@@ -16,6 +16,9 @@ import { useClasses } from "@/hooks/use-classes"
 import { useStudents } from "@/hooks/use-students"
 import { CreateClassModal } from "@/components/create-class-modal"
 import { ClassActionsMenu } from "@/components/class-actions-menu"
+import { ClassStatusBadge } from "@/components/class-status-badge"
+import { EmptyState } from "@/components/empty-state"
+import { PageHeader } from "@/components/page-header"
 import { formatCurrency } from "@/lib/utils"
 import {
   format,
@@ -199,39 +202,7 @@ export function CalendarView() {
     })
   }, [currentDate, filteredClasses, viewMode])
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "completed":
-        return (
-          <Badge variant="default" className="text-xs bg-green-500 text-white hover:bg-green-600">
-            Concluída
-          </Badge>
-        )
-      case "scheduled":
-        return (
-          <Badge variant="secondary" className="text-xs">
-            Agendada
-          </Badge>
-        )
-      case "cancelled":
-        return (
-          <Badge variant="destructive" className="text-xs bg-red-500 text-white hover:bg-red-600">
-            Cancelada
-          </Badge>
-        )
-      default:
-        return (
-          <Badge
-            variant="outline"
-            className="text-xs bg-amber-100 text-amber-800 hover:bg-amber-200 dark:bg-amber-800 dark:text-amber-100 dark:hover:bg-amber-700"
-          >
-            Pendente
-          </Badge>
-        )
-    }
-  }
-
-  const renderClassTags = (classItem: any, showNames = true) => {
+const renderClassTags = (classItem: any, showNames = true) => {
     if (!classItem.tags || classItem.tags.length === 0) return null
 
     if (showNames) {
@@ -268,22 +239,20 @@ export function CalendarView() {
   return (
     <div className="space-y-4 md:space-y-6">
       <div className="flex flex-col space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold">Agenda</h2>
-
+        <PageHeader title="Agenda" description="Visualize e gerencie suas aulas.">
           <CreateClassModal
             open={newClassOpen}
             onOpenChange={setNewClassOpen}
             onSuccess={handleClassSuccess}
           />
-          <Button 
+          <Button
             onClick={() => setNewClassOpen(true)}
-            className="h-12 px-6 flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white"
+            className="h-9 gap-2"
           >
-            <Plus className="h-5 w-5 shrink-0" />
-            <span className="truncate">Nova Aula</span>
+            <Plus className="h-4 w-4" />
+            Nova Aula
           </Button>
-        </div>
+        </PageHeader>
 
         <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as any)} className="w-full">
           <TabsList className="grid w-full grid-cols-4 h-12">
@@ -426,17 +395,11 @@ export function CalendarView() {
             </div>
 
             {filteredClasses.length === 0 ? (
-              <Card className="text-center py-12">
-                <CardContent>
-                  <Calendar className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                  <h3 className="text-lg font-semibold mb-2">Nenhuma aula encontrada</h3>
-                  <p className="text-muted-foreground">
-                    {filterStudent !== "all" || filterStatus !== "all" || customStartDate || customEndDate
-                      ? "Tente ajustar os filtros"
-                      : "Comece agendando sua primeira aula"}
-                  </p>
-                </CardContent>
-              </Card>
+              <EmptyState
+                icon={Calendar}
+                message="Nenhuma aula encontrada"
+                description={filterStudent !== "all" || filterStatus !== "all" || customStartDate || customEndDate ? "Tente ajustar os filtros" : "Comece agendando sua primeira aula"}
+              />
             ) : (
               <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
                 {filteredClasses
@@ -456,7 +419,7 @@ export function CalendarView() {
                             {renderClassTags(classItem, true)}
                           </div>
                           <div className="flex items-center gap-2">
-                            {getStatusBadge(classItem.status)}
+                            <ClassStatusBadge status={classItem.status} />
                             <ClassActionsMenu classItem={classItem} onUpdate={handleClassUpdate} />
                           </div>
                         </div>
@@ -475,7 +438,7 @@ export function CalendarView() {
 
                         <div className="flex items-center justify-between pt-2 border-t">
                           <div className="text-sm text-muted-foreground">{classItem.duration} min</div>
-                          <div className="text-lg font-bold text-blue-600">{formatCurrency(classItem.value)}</div>
+                          <div className="text-lg font-bold text-primary">{formatCurrency(classItem.value)}</div>
                         </div>
 
                         {classItem.notes && (
@@ -490,13 +453,7 @@ export function CalendarView() {
 
           <TabsContent value="day" className="space-y-4 mt-6">
             {filteredClasses.length === 0 ? (
-              <Card className="text-center py-12">
-                <CardContent>
-                  <Calendar className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                  <h3 className="text-lg font-semibold mb-2">Nenhuma aula neste dia</h3>
-                  <p className="text-muted-foreground">Selecione outro dia ou agende uma nova aula</p>
-                </CardContent>
-              </Card>
+              <EmptyState icon={Calendar} message="Nenhuma aula neste dia" description="Selecione outro dia ou agende uma nova aula" />
             ) : (
               <div className="space-y-3">
                 {filteredClasses
@@ -521,10 +478,10 @@ export function CalendarView() {
                           </div>
                           <div className="flex flex-col items-end gap-2">
                             <div className="flex items-center gap-2">
-                              {getStatusBadge(classItem.status)}
+                              <ClassStatusBadge status={classItem.status} />
                               <ClassActionsMenu classItem={classItem} onUpdate={handleClassUpdate} />
                             </div>
-                            <div className="text-xl font-bold text-blue-600">{formatCurrency(classItem.value)}</div>
+                            <div className="text-xl font-bold text-primary">{formatCurrency(classItem.value)}</div>
                           </div>
                         </div>
                         {classItem.notes && (
@@ -563,9 +520,7 @@ export function CalendarView() {
                     </AccordionTrigger>
                     <AccordionContent>
                       {dayClasses.length === 0 ? (
-                        <div className="text-center py-8 text-muted-foreground">
-                          <p>Nenhuma aula neste dia</p>
-                        </div>
+                        <EmptyState icon={Calendar} message="Nenhuma aula neste dia" />
                       ) : (
                         <div className="space-y-3">
                           {dayClasses
@@ -584,8 +539,8 @@ export function CalendarView() {
                                   </div>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  {getStatusBadge(classItem.status)}
-                                  <div className="text-lg font-bold text-blue-600">
+                                  <ClassStatusBadge status={classItem.status} />
+                                  <div className="text-lg font-bold text-primary">
                                     {formatCurrency(classItem.value)}
                                   </div>
                                   <ClassActionsMenu classItem={classItem} onUpdate={handleClassUpdate} />
@@ -673,7 +628,7 @@ export function CalendarView() {
                             {renderClassTags(classItem, true)}
                           </div>
                           <div className="flex items-center gap-2">
-                            {getStatusBadge(classItem.status)}
+                            <ClassStatusBadge status={classItem.status} />
                             <ClassActionsMenu classItem={classItem} onUpdate={handleClassUpdate} />
                           </div>
                         </div>
@@ -692,7 +647,7 @@ export function CalendarView() {
 
                         <div className="flex items-center justify-between pt-2 border-t">
                           <div className="text-sm text-muted-foreground">{classItem.duration} min</div>
-                          <div className="text-lg font-bold text-blue-600">{formatCurrency(classItem.value)}</div>
+                          <div className="text-lg font-bold text-primary">{formatCurrency(classItem.value)}</div>
                         </div>
                       </CardContent>
                     </Card>

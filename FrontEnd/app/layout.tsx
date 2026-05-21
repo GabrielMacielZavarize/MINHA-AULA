@@ -5,7 +5,12 @@ import { ThemeProvider } from "@/lib/theme"
 import { I18nProvider } from "@/lib/i18n"
 import { Toaster } from "@/components/ui/toaster"
 
-const inter = Inter({ subsets: ["latin"] })
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+  weight: ["400", "500", "600", "700"],
+})
 
 export const metadata = {
   title: "Minha Aula - Sistema de Gerenciamento",
@@ -20,7 +25,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className={`${inter.variable} font-sans`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <I18nProvider>
             <div className="min-h-screen bg-background text-foreground">{children}</div>

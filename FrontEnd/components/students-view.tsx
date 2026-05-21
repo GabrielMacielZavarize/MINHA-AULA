@@ -25,6 +25,7 @@ import { useStudents } from "@/hooks/use-students"
 import { useClasses } from "@/hooks/use-classes"
 import { NewStudentForm } from "@/components/new-student-form"
 import { useToast } from "@/hooks/use-toast"
+import { EmptyState } from "@/components/empty-state"
 import { format, parseISO } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { formatCurrency } from "@/lib/utils"
@@ -101,36 +102,46 @@ export function StudentsView() {
   }
 
   return (
-    <div className="space-y-4 md:space-y-6">
-      <div className="flex flex-col space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold">Alunos</h2>
-
+    <div className="space-y-6">
+      <div className="flex items-start justify-between gap-4">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Meus Alunos</h1>
+          <p className="text-muted-foreground text-sm">
+            {students.length} aluno{students.length !== 1 ? "s" : ""} cadastrado{students.length !== 1 ? "s" : ""}
+          </p>
         </div>
+        <Dialog open={newStudentOpen} onOpenChange={setNewStudentOpen}>
+          <DialogTrigger asChild>
+            <Button className="shrink-0 gap-2">
+              <UserPlus className="h-4 w-4" />
+              Adicionar Aluno
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Novo Aluno</DialogTitle>
+            </DialogHeader>
+            <NewStudentForm onSuccess={handleStudentSuccess} />
+          </DialogContent>
+        </Dialog>
+      </div>
 
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar alunos..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 h-12"
-          />
-        </div>
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+        <Input
+          placeholder="Buscar por nome, email ou telefone..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-9 h-10"
+        />
       </div>
 
       {filteredStudents.length === 0 ? (
-        <Card className="text-center py-12">
-          <CardContent>
-            <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-            <h3 className="text-lg font-semibold mb-2">
-              {searchTerm ? "Nenhum aluno encontrado" : "Nenhum aluno cadastrado"}
-            </h3>
-            <p className="text-muted-foreground mb-4">
-              {searchTerm ? "Tente ajustar sua busca" : "Comece adicionando seu primeiro aluno"}
-            </p>
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={Users}
+          message={searchTerm ? "Nenhum aluno encontrado" : "Nenhum aluno cadastrado"}
+          description={searchTerm ? "Tente ajustar sua busca" : "Comece adicionando seu primeiro aluno"}
+        />
       ) : (
         <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
           {filteredStudents.map((student) => {

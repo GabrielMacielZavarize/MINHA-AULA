@@ -1,0 +1,60 @@
+flowchart TD
+    A["Acesso"]
+
+    A --> R["/ <br/> Verifica sessao e redireciona"]
+    A --> L["Login"]
+    A --> C["Cadastro"]
+    A --> D["/dashboard <br/> Redireciona para a area autenticada"]
+
+    L --> AUTH["Area autenticada"]
+    C --> AUTH
+    D --> AUTH
+
+    AUTH --> P_DASH
+    AUTH --> A_FIND
+
+    subgraph PROFESSOR["Professor"]
+        direction TB
+        P_DASH["Dashboard"]
+        P_CLASSES["Gerenciar Aulas"]
+        P_CAL["Agenda"]
+        P_STUD["Meus Alunos"]
+        P_FIN["Financeiro"]
+        P_NOT["Notificacoes"]
+        P_SET["Configuracoes"]
+
+        P_CLASSES -.-> P_NEW["Nova Aula"]
+        P_CLASSES -.-> P_EDIT["Editar Aula"]
+        P_CLASSES -.-> P_STATUS["Alterar status"]
+        P_CLASSES -.-> P_ENROLL["Associar aluno por matricula"]
+    end
+
+    subgraph ALUNO["Aluno"]
+        direction TB
+        A_FIND["Encontrar Aulas"]
+        A_SCHED["Minhas Aulas"]
+        A_TEACH["Meus Professores"]
+        A_NOT["Notificacoes"]
+        A_SET["Configuracoes"]
+
+        A_SCHED -.-> A_ACCEPT["Aceitar convite"]
+        A_SCHED -.-> A_REJECT["Recusar convite"]
+        A_SCHED -.-> A_HISTORY["Ver historico"]
+    end
+
+    P_DASH --> P_CLASSES
+    P_CLASSES --> P_STUD
+    P_STUD --> P_NOT
+
+    A_FIND --> A_SCHED
+    A_SCHED --> A_NOT
+
+    classDef shared fill:#f8fafc,stroke:#94a3b8,color:#0f172a,stroke-width:1.5px;
+    classDef teacher fill:#eff6ff,stroke:#2563eb,color:#0f172a,stroke-width:1.5px;
+    classDef student fill:#f0fdf4,stroke:#16a34a,color:#0f172a,stroke-width:1.5px;
+    classDef callout fill:#fff7ed,stroke:#f59e0b,color:#7c2d12,stroke-width:1.5px,stroke-dasharray: 5 3;
+
+    class A,AUTH,R,L,C,D shared;
+    class P_DASH,P_CLASSES,P_CAL,P_STUD,P_FIN,P_NOT,P_SET teacher;
+    class A_FIND,A_SCHED,A_TEACH,A_NOT,A_SET student;
+    class P_NEW,P_EDIT,P_STATUS,P_ENROLL,A_ACCEPT,A_REJECT,A_HISTORY callout;
